@@ -1,0 +1,31 @@
+body {
+    margin: 0;
+}
+
+#game-area {
+    width: 320px;
+    height: 192px;
+    border: 5px;
+    border-color: red;
+    border-style: solid;
+    box-sizing: border-box;
+}
+
+.wall {
+    background-color: rebeccapurple;
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+}
+
+.exit {
+    background-color: yellowgreen;
+    color: white;
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+}

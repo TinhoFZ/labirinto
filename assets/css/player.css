@@ -1,0 +1,12 @@
+#player {
+    background-color: black;
+    color: white;
+    top : 0px;
+    left: 0px;
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+}
