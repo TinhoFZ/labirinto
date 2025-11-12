@@ -92,6 +92,70 @@ function changeMap(){
   player = document.querySelector('#player')
 }
 
+function checkWallCollision(keyPress) {
+  const walls = document.querySelectorAll('.wall');
+  // Collision detection with walls
+  walls.forEach(wall => {
+    const wallRect = wall.getBoundingClientRect();
+
+    if (wallRect.left === xAxis && wallRect.top === yAxis) {
+      // Handle wall movement and player position update
+      switch (keyPress) {
+        case 'ArrowUp':
+          if (document.elementFromPoint(wallRect.left, wallRect.top - movement) == gameArea) {
+            wall.style.top = `${wallRect.top - movement}px`;
+          } else {
+            xAxis = pastX;
+            yAxis = pastY;
+          }
+          break;
+
+        case 'ArrowDown':
+          if (document.elementFromPoint(wallRect.left, wallRect.top + movement) == gameArea) {
+            wall.style.top = `${wallRect.top + movement}px`;
+          } else {
+            xAxis = pastX;
+            yAxis = pastY;
+          }
+          break;
+
+        case 'ArrowLeft':
+          if (document.elementFromPoint(wallRect.left - movement, wallRect.top) == gameArea) {
+            wall.style.left = `${wallRect.left - movement}px`;
+          } else {
+            xAxis = pastX;
+            yAxis = pastY;
+          }
+          break;
+
+        case 'ArrowRight':
+          if (document.elementFromPoint(wallRect.left + movement, wallRect.top) == gameArea) {
+            wall.style.left = `${wallRect.left + movement}px`;
+          } else {
+            xAxis = pastX;
+            yAxis = pastY;
+          }
+          break;
+      }
+    }
+  });
+}
+
+function checkExitCollision() {
+  const exit = document.querySelector('.exit');
+  if (xAxis + 'px' === exit.style.left && yAxis + 'px' === exit.style.top) {
+    if (level === maps.length - 1) {
+      window.location.href = 'end.html';
+      return;
+    } else {
+      level++;
+    }
+
+    changeMap();
+    renderMap();
+  }
+}
+
 document.addEventListener('keydown', event => {
 
   if (event.key.startsWith('Arrow')) {
@@ -122,69 +186,12 @@ document.addEventListener('keydown', event => {
     if (xAxis > gameAreaValues.width - player.offsetWidth) xAxis = gameAreaValues.width - player.offsetWidth;
     if (yAxis > gameAreaValues.height - player.offsetHeight) yAxis = gameAreaValues.height - player.offsetHeight;
 
-    const walls = document.querySelectorAll('.wall');
-
-    // Collision detection with walls
-    walls.forEach(wall => {
-      const wallRect = wall.getBoundingClientRect();
-
-      if (wallRect.left === xAxis && wallRect.top === yAxis) {
-        // Handle wall movement and player position update
-        switch (event.key) {
-          case 'ArrowUp':
-            if (document.elementFromPoint(wallRect.left, wallRect.top - movement) == gameArea) {
-              wall.style.top = `${wallRect.top - movement}px`;
-            } else {
-              xAxis = pastX;
-              yAxis = pastY;
-            }
-            break;
-
-          case 'ArrowDown':
-            if (document.elementFromPoint(wallRect.left, wallRect.top + movement) == gameArea) {
-              wall.style.top = `${wallRect.top + movement}px`;
-            } else {
-              xAxis = pastX;
-              yAxis = pastY;
-            }
-            break;
-
-          case 'ArrowLeft':
-            if (document.elementFromPoint(wallRect.left - movement, wallRect.top) == gameArea) {
-              wall.style.left = `${wallRect.left - movement}px`;
-            } else {
-              xAxis = pastX;
-              yAxis = pastY;
-            }
-            break;
-
-          case 'ArrowRight':
-            if (document.elementFromPoint(wallRect.left + movement, wallRect.top) == gameArea) {
-              wall.style.left = `${wallRect.left + movement}px`;
-            } else {
-              xAxis = pastX;
-              yAxis = pastY;
-            }
-            break;
-        }
-      }
-    });
+    checkWallCollision(event.key);
 
     // Update the player's position on screen
     player.style.top = `${yAxis}px`;
     player.style.left = `${xAxis}px`;
 
-    const exit = document.querySelector('.exit');
-    if(xAxis + 'px' === exit.style.left && yAxis + 'px' === exit.style.top){
-      if(level === maps.length - 1){
-        window.location.href = 'end.html';
-        return;
-      } else {
-        level++;
-      }
-      
-      changeMap();
-      renderMap();
-    }
+    checkExitCollision();
   }
 });
