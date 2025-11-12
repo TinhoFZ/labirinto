@@ -18,11 +18,8 @@ let maps;
 // Current map
 let map;
 
-// Map Legend:
-// " " = empty space
-// "#" = wall
-// "!" = start
-// "@" = exit
+
+// Load maps from JSON file
 
 fetch('assets/maps.json')
   .then(res => res.json())
@@ -36,27 +33,51 @@ fetch('assets/maps.json')
 function renderMap(){
     map.forEach((row, y) => {
     row.forEach((element, x) => {
-      if (element === "!") {
+      /* Map Legend:
+      " " = empty space
+      "#" = wall
+      "!" = start
+      "@" = exit
+      "&" = key
+      "*" = door */
+      if(element === "!") {
         xAxis = x * 32;
         yAxis = y * 32;
         pastX = xAxis;
         pastY = yAxis;
         player.style.top = `${yAxis}px`;
         player.style.left = `${xAxis}px`;
-      }
-      if (element === "#") {
+      } else if(element === "#") {
         const wall = document.createElement('div');
         wall.style.top = `${y * 32}px`;
         wall.style.left = `${x * 32}px`;
         wall.className = "wall";
         gameArea.appendChild(wall);
-      } else if (element === "@") {
+      } else if(element === "@") {
         const exit = document.createElement('div');
         exit.innerText = "Exit";
         exit.style.top = `${y * 32}px`;
         exit.style.left = `${x * 32}px`;
         exit.className = "exit";
         gameArea.appendChild(exit);
+      } else if(element === "&") {
+        const key = document.createElement('div');
+        key.style.top = `${y * 32}px`;
+        key.style.left = `${x * 32}px`;
+        key.className = "key";
+        gameArea.appendChild(key);
+      } else if(element === "*") {
+        const door = document.createElement('div');
+        door.style.top = `${y * 32}px`;
+        door.style.left = `${x * 32}px`;
+        door.className = "door";
+        gameArea.appendChild(door);
+      } else if(element === "&") {
+        const key = document.createElement('div');
+        key.style.top = `${y * 32}px`;
+        key.style.left = `${x * 32}px`;
+        key.className = "key";
+        gameArea.appendChild(key);
       }
     });
   });
@@ -106,8 +127,6 @@ document.addEventListener('keydown', event => {
     // Collision detection with walls
     walls.forEach(wall => {
       const wallRect = wall.getBoundingClientRect();
-      const playerRect = player.getBoundingClientRect();
-
 
       if (wallRect.left === xAxis && wallRect.top === yAxis) {
         // Handle wall movement and player position update
@@ -157,7 +176,13 @@ document.addEventListener('keydown', event => {
 
     const exit = document.querySelector('.exit');
     if(xAxis + 'px' === exit.style.left && yAxis + 'px' === exit.style.top){
-      level++;
+      if(level === maps.length - 1){
+        window.location.href = 'end.html';
+        return;
+      } else {
+        level++;
+      }
+      
       changeMap();
       renderMap();
     }
