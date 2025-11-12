@@ -13,11 +13,14 @@ let movement = 32;
 
 let level = 0;
 
+let inventory = {
+  playerKeys: 0
+}
+
 // All maps objects
 let maps;
 // Current map
 let map;
-
 
 // Load maps from JSON file
 
@@ -47,12 +50,14 @@ function renderMap(){
         pastY = yAxis;
         player.style.top = `${yAxis}px`;
         player.style.left = `${xAxis}px`;
+
       } else if(element === "#") {
         const wall = document.createElement('div');
         wall.style.top = `${y * 32}px`;
         wall.style.left = `${x * 32}px`;
         wall.className = "wall";
         gameArea.appendChild(wall);
+
       } else if(element === "@") {
         const exit = document.createElement('div');
         exit.innerText = "Exit";
@@ -60,24 +65,20 @@ function renderMap(){
         exit.style.left = `${x * 32}px`;
         exit.className = "exit";
         gameArea.appendChild(exit);
+
       } else if(element === "&") {
         const key = document.createElement('div');
         key.style.top = `${y * 32}px`;
         key.style.left = `${x * 32}px`;
         key.className = "key";
         gameArea.appendChild(key);
+
       } else if(element === "*") {
         const door = document.createElement('div');
         door.style.top = `${y * 32}px`;
         door.style.left = `${x * 32}px`;
         door.className = "door";
         gameArea.appendChild(door);
-      } else if(element === "&") {
-        const key = document.createElement('div');
-        key.style.top = `${y * 32}px`;
-        key.style.left = `${x * 32}px`;
-        key.className = "key";
-        gameArea.appendChild(key);
       }
     });
   });
@@ -156,6 +157,35 @@ function checkExitCollision() {
   }
 }
 
+function pickUpKey() {
+  if(document.querySelectorAll('.key')) {
+    const keys = document.querySelectorAll('.key')
+    keys.forEach(key => {
+      if(xAxis + 'px' === key.style.left && yAxis + 'px' === key.style.top) {
+        inventory.playerKeys++;
+        key.remove();
+      }
+    })
+  }
+}
+
+function openDoor() {
+  if(document.querySelectorAll('.door')) {
+    const doors = document.querySelectorAll('.door')
+    doors.forEach(door => {
+      if(xAxis + 'px' === door.style.left && yAxis + 'px' === door.style.top) {
+        if(inventory.playerKeys > 0) {
+          inventory.playerKeys--;
+          door.remove();
+        } else {
+          xAxis = pastX;
+          yAxis = pastY;
+        }
+      }
+    })
+  }
+}
+
 document.addEventListener('keydown', event => {
 
   if (event.key.startsWith('Arrow')) {
@@ -187,6 +217,8 @@ document.addEventListener('keydown', event => {
     if (yAxis > gameAreaValues.height - player.offsetHeight) yAxis = gameAreaValues.height - player.offsetHeight;
 
     checkWallCollision(event.key);
+    pickUpKey();
+    openDoor();
 
     // Update the player's position on screen
     player.style.top = `${yAxis}px`;
