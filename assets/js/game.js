@@ -1,5 +1,5 @@
 const gameArea = document.querySelector('#game-area');
-const player = document.querySelector('#player');
+let player = document.querySelector('#player');
 
 let gameAreaValues = gameArea.getBoundingClientRect();
 
@@ -11,52 +11,65 @@ let pastY = 0;
 
 let movement = 32;
 
+let level = 0;
+
+// All maps objects
+let maps;
+// Current map
+let map;
+
 // Map Legend:
 // " " = empty space
 // "#" = wall
 // "!" = start
 // "@" = exit
-const map = [
-  [" ", "#", "#", "#", "#", "#", "#", "#", "#", "#"],
-  ["!", " ", "#", "#", "#", "#", "#", "#", "#", "#"],
-  [" ", " ", " ", "#", " ", "#", "#", "#", "#", "#"],
-  ["#", "#", "#", "#", "#", " ", " ", " ", "#", "#"],
-  ["#", "#", " ", " ", " ", "#", " ", " ", "#", "#"],
-  ["#", "#", " ", "#", "#", "#", "#", " ", " ", "@"],
-];  
+
+fetch('assets/maps.json')
+  .then(res => res.json())
+  .then(levels => {
+    maps = levels.maps
+    map = maps[level].layout;
+    renderMap();
+  })
 
 // Render the map
-map.forEach((row, y) => {
-  row.forEach((element, x) => {
-    if (element === "!") {
-      const start = document.createElement('div');
-      start.style.top = `${y * 32}px`;
-      start.style.left = `${x * 32}px`;
-      start.className = "start";
-      gameArea.appendChild(start);
-      xAxis = x * 32;
-      yAxis = y * 32;
-      pastX = xAxis;
-      pastY = yAxis;
-      player.style.top = `${yAxis}px`;
-      player.style.left = `${xAxis}px`;
-    }
-    if (element === "#") {
-      const wall = document.createElement('div');
-      wall.style.top = `${y * 32}px`;
-      wall.style.left = `${x * 32}px`;
-      wall.className = "wall";
-      gameArea.appendChild(wall);
-    } else if (element === "@") {
-      const exit = document.createElement('div');
-      exit.innerText = "Exit";
-      exit.style.top = `${y * 32}px`;
-      exit.style.left = `${x * 32}px`;
-      exit.className = "exit";
-      gameArea.appendChild(exit);
-    }
+function renderMap(){
+    map.forEach((row, y) => {
+    row.forEach((element, x) => {
+      if (element === "!") {
+        xAxis = x * 32;
+        yAxis = y * 32;
+        pastX = xAxis;
+        pastY = yAxis;
+        player.style.top = `${yAxis}px`;
+        player.style.left = `${xAxis}px`;
+      }
+      if (element === "#") {
+        const wall = document.createElement('div');
+        wall.style.top = `${y * 32}px`;
+        wall.style.left = `${x * 32}px`;
+        wall.className = "wall";
+        gameArea.appendChild(wall);
+      } else if (element === "@") {
+        const exit = document.createElement('div');
+        exit.innerText = "Exit";
+        exit.style.top = `${y * 32}px`;
+        exit.style.left = `${x * 32}px`;
+        exit.className = "exit";
+        gameArea.appendChild(exit);
+      }
+    });
   });
-});
+}
+
+function changeMap(){
+  gameArea.innerHTML = '<div id="player">You</div>'
+  gameArea.style.width = maps[level].width;
+  gameArea.style.height = maps[level].height;
+  map = maps[level].layout;
+
+  player = document.querySelector('#player')
+}
 
 document.addEventListener('keydown', event => {
 
@@ -141,5 +154,12 @@ document.addEventListener('keydown', event => {
     // Update the player's position on screen
     player.style.top = `${yAxis}px`;
     player.style.left = `${xAxis}px`;
+
+    const exit = document.querySelector('.exit');
+    if(xAxis + 'px' === exit.style.left && yAxis + 'px' === exit.style.top){
+      level++;
+      changeMap();
+      renderMap();
+    }
   }
 });
