@@ -1,7 +1,9 @@
 const gameArea = document.querySelector('#game-area');
+const inventoryList = document.querySelector('#inventory');
+
 let player = document.querySelector('#player');
 
-let gameAreaValues = gameArea.getBoundingClientRect();
+let gameAreaValues;
 
 let xAxis = 0;
 let yAxis = 0;
@@ -28,6 +30,9 @@ fetch('assets/maps.json')
   .then(res => res.json())
   .then(levels => {
     maps = levels.maps
+    gameArea.style.width = maps[level].width;
+    gameArea.style.height = maps[level].height;
+    gameAreaValues = gameArea.getBoundingClientRect();
     map = maps[level].layout;
     renderMap();
   })
@@ -38,11 +43,13 @@ function renderMap(){
     row.forEach((element, x) => {
       /* Map Legend:
       " " = empty space
+      "." = immovable wall
       "#" = wall
-      "!" = start
-      "@" = exit
+      ":" = pit
       "&" = key
-      "*" = door */
+      "*" = door
+      "!" = start
+      "@" = exit */
       if(element === "!") {
         xAxis = x * 32;
         yAxis = y * 32;
@@ -57,7 +64,18 @@ function renderMap(){
         wall.style.left = `${x * 32}px`;
         wall.className = "wall";
         gameArea.appendChild(wall);
-
+      } else if(element === ".") {
+        const immovableWall = document.createElement('div');
+        immovableWall.style.top = `${y * 32}px`;
+        immovableWall.style.left = `${x * 32}px`;
+        immovableWall.className = "immovable-wall";
+        gameArea.appendChild(immovableWall);
+      } else if(element === ":") {
+        const pit = document.createElement('div');
+        pit.style.top = `${y * 32}px`;
+        pit.style.left = `${x * 32}px`;
+        pit.className = "pit";
+        gameArea.appendChild(pit);
       } else if(element === "@") {
         const exit = document.createElement('div');
         exit.innerText = "Exit";
@@ -65,7 +83,6 @@ function renderMap(){
         exit.style.left = `${x * 32}px`;
         exit.className = "exit";
         gameArea.appendChild(exit);
-
       } else if(element === "&") {
         const key = document.createElement('div');
         key.style.top = `${y * 32}px`;
@@ -88,6 +105,7 @@ function changeMap(){
   gameArea.innerHTML = '<div id="player">You</div>'
   gameArea.style.width = maps[level].width;
   gameArea.style.height = maps[level].height;
+  gameAreaValues = gameArea.getBoundingClientRect();
   map = maps[level].layout;
 
   player = document.querySelector('#player')
@@ -103,8 +121,18 @@ function checkWallCollision(keyPress) {
       // Handle wall movement and player position update
       switch (keyPress) {
         case 'ArrowUp':
-          if (document.elementFromPoint(wallRect.left, wallRect.top - movement) == gameArea) {
-            wall.style.top = `${wallRect.top - movement}px`;
+          const wallUp = document.elementFromPoint(wallRect.left, wallRect.top - movement);
+          if (wallUp != null) {
+            if (wallUp === gameArea) {
+              wall.style.top = `${wallRect.top - movement}px`;
+            } else if (wallUp.className === 'pit') {
+              wallUp.remove();
+              wall.remove();
+            }
+            else {
+              xAxis = pastX;
+              yAxis = pastY;
+            }
           } else {
             xAxis = pastX;
             yAxis = pastY;
@@ -112,8 +140,18 @@ function checkWallCollision(keyPress) {
           break;
 
         case 'ArrowDown':
-          if (document.elementFromPoint(wallRect.left, wallRect.top + movement) == gameArea) {
-            wall.style.top = `${wallRect.top + movement}px`;
+          const wallDown = document.elementFromPoint(wallRect.left, wallRect.top + movement);
+          if (wallDown != null) {
+            if (wallDown === gameArea) {
+              wall.style.top = `${wallRect.top + movement}px`;
+            } else if (wallDown.className === 'pit') {
+              wallDown.remove();
+              wall.remove();
+            }
+            else {
+              xAxis = pastX;
+              yAxis = pastY;
+            }
           } else {
             xAxis = pastX;
             yAxis = pastY;
@@ -121,8 +159,18 @@ function checkWallCollision(keyPress) {
           break;
 
         case 'ArrowLeft':
-          if (document.elementFromPoint(wallRect.left - movement, wallRect.top) == gameArea) {
-            wall.style.left = `${wallRect.left - movement}px`;
+          const wallLeft = document.elementFromPoint(wallRect.left - movement, wallRect.top);
+          if (wallLeft != null) {
+            if (wallLeft === gameArea) {
+              wall.style.top = `${wallRect.left - movement}px`;
+            } else if (wallLeft.className === 'pit') {
+              wallLeft.remove();
+              wall.remove();
+            }
+            else {
+              xAxis = pastX;
+              yAxis = pastY;
+            }
           } else {
             xAxis = pastX;
             yAxis = pastY;
@@ -130,14 +178,53 @@ function checkWallCollision(keyPress) {
           break;
 
         case 'ArrowRight':
-          if (document.elementFromPoint(wallRect.left + movement, wallRect.top) == gameArea) {
-            wall.style.left = `${wallRect.left + movement}px`;
+          const wallRight = document.elementFromPoint(wallRect.left + movement, wallRect.top);
+          if (wallRight != null) {
+            if (wallRight === gameArea) {
+              wall.style.left = `${wallRect.left + movement}px`;
+            } else if (wallRight.className === 'pit') {
+              wallRight.remove();
+              wall.remove();
+            }
+            else {
+              xAxis = pastX;
+              yAxis = pastY;
+            }
           } else {
             xAxis = pastX;
             yAxis = pastY;
           }
           break;
       }
+    }
+  });
+}
+
+function checkImmovableWallCollision() {
+  const immovableWalls = document.querySelectorAll('.immovable-wall');
+
+  immovableWalls.forEach(immovableWall => {
+    const wallRect = immovableWall.getBoundingClientRect();
+
+    if (wallRect.left === xAxis && wallRect.top === yAxis) {
+      // Revert player position on collision
+      xAxis = pastX;
+      yAxis = pastY;
+    }
+    
+  });
+}
+
+function checkPitCollision() {
+  const pits = document.querySelectorAll('.pit');
+
+  pits.forEach(pit => {
+    const pitRect = pit.getBoundingClientRect();
+
+    if(pitRect.left === xAxis && pitRect.top === yAxis) {
+      // Revert player position on collision
+      xAxis = pastX;
+      yAxis = pastY;
     }
   });
 }
@@ -164,6 +251,7 @@ function pickUpKey() {
       if(xAxis + 'px' === key.style.left && yAxis + 'px' === key.style.top) {
         inventory.playerKeys++;
         key.remove();
+        updateInventory();
       }
     })
   }
@@ -177,12 +265,25 @@ function openDoor() {
         if(inventory.playerKeys > 0) {
           inventory.playerKeys--;
           door.remove();
+          updateInventory();
         } else {
           xAxis = pastX;
           yAxis = pastY;
         }
       }
     })
+  }
+}
+
+function updateInventory() {
+  if(!document.querySelector('#inventory-keys')) {
+    const inventoryKeys = document.createElement('li');
+    inventoryKeys.id = 'inventory-keys';
+    inventoryKeys.innerText = `Keys: ${inventory.playerKeys}`;
+    inventoryList.appendChild(inventoryKeys);
+  } else {
+    const inventoryKeys = document.querySelector('#inventory-keys');
+    inventoryKeys.innerText = `Keys: ${inventory.playerKeys}`;
   }
 }
 
@@ -217,6 +318,8 @@ document.addEventListener('keydown', event => {
     if (yAxis > gameAreaValues.height - player.offsetHeight) yAxis = gameAreaValues.height - player.offsetHeight;
 
     checkWallCollision(event.key);
+    checkImmovableWallCollision();
+    checkPitCollision();
     pickUpKey();
     openDoor();
 

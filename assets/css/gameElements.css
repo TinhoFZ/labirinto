@@ -12,8 +12,26 @@ body {
 }
 
 .wall {
+    background-color: hwb(296 38% 0%);
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    box-sizing: border-box;
+    border: 1px solid white;
+}
+
+.immovable-wall {
     background-color: rebeccapurple;
     position: absolute;
+    width: 32px;
+    height: 32px;
+    box-sizing: border-box;
+    border: 1px solid white;
+}
+
+.pit {
+    background-color: black;
+    position:absolute;
     width: 32px;
     height: 32px;
     box-sizing: border-box;
